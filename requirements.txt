@@ -3,3 +3,5 @@ opencv-python-headless
 pillow
 pandas
 numpy
+gspread
+google-auth
