@@ -3,13 +3,44 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 import streamlit as st
-from datetime import datetime
 from pathlib import Path
+from datetime import datetime
+import gspread
+from google.oauth2.service_account import Credentials
 
 DATA_FILE = Path("hasil_hitung_benur.csv")
+SPREADSHEET_ID = "13XAwI8y9F6yox2yFdXWQ8kn80ep9E-uUA-xn8WI7b5Y"
+
+
+def save_to_google_sheet(row):
+    scopes = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive",
+    ]
+
+    credentials = Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"],
+        scopes=scopes,
+    )
+
+    client = gspread.authorize(credentials)
+    sheet = client.open_by_key(SPREADSHEET_ID).sheet1
+
+    sheet.append_row([
+        str(row["tanggal"]),
+        row["unit"],
+        row["batch"],
+        row["tank"],
+        row["umur_pl"],
+        row["operator"],
+        int(row["hasil_deteksi"]),
+        int(row["hasil_koreksi"]),
+        row["catatan"],
+    ])
+
 
 st.set_page_config(
-    page_title="Aplikasi Hitung Benur",
+    page_title="CPP FastCount",
     page_icon="🦐",
     layout="wide"
 )
@@ -17,7 +48,6 @@ st.set_page_config(
 st.title("🦐 CPP FastCount")
 st.write("Upload foto benur untuk menghitung estimasi jumlah benur.")
 
-# Sidebar
 with st.sidebar:
     st.header("Data Sampling")
     unit = st.text_input("Unit Hatchery", "Makassar")
@@ -36,6 +66,7 @@ uploaded_file = st.file_uploader(
     "Upload Foto Benur",
     type=["jpg", "jpeg", "png"]
 )
+
 
 def detect_benur(image_rgb):
     gray = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2GRAY)
@@ -68,18 +99,12 @@ def detect_benur(image_rgb):
             count += 1
             x, y, w, h = cv2.boundingRect(contour)
 
-            cv2.rectangle(
-                result,
-                (x, y),
-                (x + w, y + h),
-                (0, 255, 0),
-                2
-            )
+            cv2.rectangle(result, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
             cv2.putText(
                 result,
                 str(count),
-                (x, y - 5),
+                (x, max(y - 5, 10)),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5,
                 (255, 0, 0),
@@ -99,14 +124,14 @@ if uploaded_file:
 
     with col1:
         st.subheader("Foto Asli")
-        st.image(image_rgb)
+        st.image(image_rgb, use_container_width=True)
 
     with col2:
         st.subheader("Hasil Deteksi")
-        st.image(result_img)
+        st.image(result_img, use_container_width=True)
 
     st.subheader("Mask Deteksi")
-    st.image(thresh_img)
+    st.image(thresh_img, use_container_width=True)
 
     st.metric("Estimasi Jumlah Benur", count)
 
@@ -120,7 +145,7 @@ if uploaded_file:
 
     if st.button("Simpan Hasil"):
         row = {
-            "tanggal": datetime.now(),
+            "tanggal": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "unit": unit,
             "batch": batch,
             "tank": tank,
@@ -133,10 +158,15 @@ if uploaded_file:
 
         if DATA_FILE.exists():
             df = pd.read_csv(DATA_FILE)
-            df = pd.concat([df, pd.DataFrame([row])])
+            df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
         else:
             df = pd.DataFrame([row])
 
         df.to_csv(DATA_FILE, index=False)
 
-        st.success("Data berhasil disimpan")
+        try:
+            save_to_google_sheet(row)
+            st.success("Data berhasil disimpan ke Google Sheets")
+        except Exception as e:
+            st.error("Data gagal disimpan ke Google Sheets")
+            st.exception(e)
