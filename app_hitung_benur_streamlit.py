@@ -9,17 +9,11 @@ from datetime import datetime
 import gspread
 from google.oauth2.service_account import Credentials
 
-# ===============================
-# CONFIG
-# ===============================
 SPREADSHEET_ID = "13XAwI8y9F6yox2yFdXWQ8kn80ep9E-uUA-xn8WI7b5Y"
 DATA_FILE = Path("hasil_hitung_benur.csv")
 LOGO_FILE = Path("logo_cp.png")
 
 
-# ===============================
-# FUNCTIONS
-# ===============================
 def image_to_base64(image_path):
     if image_path.exists():
         with open(image_path, "rb") as img_file:
@@ -106,18 +100,12 @@ def detect_benur(image_rgb, threshold, min_area, max_area, blur):
     return result, thresh, count
 
 
-# ===============================
-# PAGE CONFIG
-# ===============================
 st.set_page_config(
     page_title="CPP FastCount",
     page_icon="🦐",
     layout="wide"
 )
 
-# ===============================
-# CUSTOM CSS
-# ===============================
 st.markdown("""
 <style>
     .stApp {
@@ -125,7 +113,7 @@ st.markdown("""
     }
 
     section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0b4d2b 0%, #0f6b3a 100%);
+        background: linear-gradient(180deg, #063b22 0%, #0b5d34 55%, #0f7a43 100%);
     }
 
     section[data-testid="stSidebar"] label,
@@ -137,34 +125,36 @@ st.markdown("""
     }
 
     .main-header {
-        background: linear-gradient(90deg, #0b4d2b, #157347);
-        padding: 30px;
-        border-radius: 24px;
+        background: linear-gradient(90deg, #063b22, #0b5d34, #157347);
+        padding: 32px;
+        border-radius: 26px;
         color: white;
-        box-shadow: 0px 8px 25px rgba(0,0,0,0.15);
+        box-shadow: 0px 10px 28px rgba(0,0,0,0.18);
         margin-bottom: 25px;
-        border-bottom: 6px solid #d4af37;
+        border-bottom: 7px solid #d4af37;
     }
 
     .main-title {
-        font-size: 48px;
+        font-size: 52px;
         font-weight: 900;
-        margin-bottom: 5px;
+        margin-bottom: 6px;
         color: #ffffff;
+        letter-spacing: 0.5px;
     }
 
     .subtitle {
-        font-size: 18px;
+        font-size: 19px;
         color: #fff4cc;
-        font-weight: 500;
+        font-weight: 600;
     }
 
     .section-card {
         background: white;
-        padding: 20px;
+        padding: 22px;
         border-radius: 18px;
         box-shadow: 0px 5px 18px rgba(0,0,0,0.07);
-        margin-bottom: 20px;
+        margin-bottom: 22px;
+        border-left: 7px solid #d4af37;
     }
 
     .success-box {
@@ -173,8 +163,18 @@ st.markdown("""
         padding: 18px;
         border-radius: 14px;
         color: #0b4d2b;
-        font-weight: 700;
+        font-weight: 800;
         font-size: 18px;
+    }
+
+    .info-box {
+        background: #fff8e6;
+        border-left: 8px solid #d4af37;
+        padding: 16px;
+        border-radius: 14px;
+        color: #4a3a00;
+        font-weight: 600;
+        margin-bottom: 18px;
     }
 
     .stButton > button {
@@ -185,6 +185,7 @@ st.markdown("""
         padding: 12px 28px;
         font-size: 18px;
         font-weight: bold;
+        width: 100%;
     }
 
     .stButton > button:hover {
@@ -194,16 +195,20 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ===============================
-# HEADER
-# ===============================
 logo_base64 = image_to_base64(LOGO_FILE)
 
 if logo_base64:
     st.markdown(f"""
     <div class="main-header">
-        <div style="display:flex; align-items:center; gap:28px;">
-            <img src="data:image/png;base64,{logo_base64}" style="width:120px;">
+        <div style="display:flex; align-items:center; gap:30px;">
+            <img src="data:image/png;base64,{logo_base64}" 
+                 style="
+                    width:145px;
+                    background:white;
+                    padding:12px;
+                    border-radius:24px;
+                    box-shadow:0 10px 24px rgba(0,0,0,0.22);
+                 ">
             <div>
                 <div class="main-title">CPP FastCount</div>
                 <div class="subtitle">
@@ -230,12 +235,8 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ===============================
-# SIDEBAR
-# ===============================
 with st.sidebar:
     st.header("📋 Data Sampling")
-
     unit = st.text_input("Unit Hatchery", "Makassar")
     batch = st.text_input("Batch")
     tank = st.text_input("Nomor Tank")
@@ -243,15 +244,11 @@ with st.sidebar:
     operator = st.text_input("Operator")
 
     st.header("⚙️ Parameter Deteksi")
-
     threshold = st.slider("Threshold", 0, 255, 120)
     min_area = st.slider("Min Area", 1, 500, 15)
     max_area = st.slider("Max Area", 10, 5000, 700)
     blur = st.slider("Blur", 1, 21, 5, step=2)
 
-# ===============================
-# FILE UPLOAD
-# ===============================
 uploaded_file = st.file_uploader(
     "📤 Upload Foto Benur",
     type=["jpg", "jpeg", "png"]
@@ -283,7 +280,11 @@ if uploaded_file:
         st.subheader("🧠 Mask Deteksi")
         st.image(thresh_img, use_container_width=True)
 
-    st.metric("📊 Estimasi Jumlah Benur", count)
+    st.markdown(f"""
+    <div class="info-box">
+        📊 Estimasi Jumlah Benur: <span style="font-size:30px; color:#0b5d34;">{count}</span>
+    </div>
+    """, unsafe_allow_html=True)
 
     koreksi = st.number_input(
         "Koreksi Manual",
@@ -306,7 +307,6 @@ if uploaded_file:
             "catatan": catatan
         }
 
-        # Backup CSV
         if DATA_FILE.exists():
             df = pd.read_csv(DATA_FILE)
             df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
@@ -315,7 +315,6 @@ if uploaded_file:
 
         df.to_csv(DATA_FILE, index=False)
 
-        # Save to Google Sheet
         save_to_google_sheet(row)
 
         st.markdown("""
