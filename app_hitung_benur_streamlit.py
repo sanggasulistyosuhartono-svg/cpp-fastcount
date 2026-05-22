@@ -8,8 +8,11 @@ from datetime import datetime
 import gspread
 from google.oauth2.service_account import Credentials
 
-DATA_FILE = Path("hasil_hitung_benur.csv")
+# =========================
+# GOOGLE SHEET CONFIG
+# =========================
 SPREADSHEET_ID = "13XAwI8y9F6yox2yFdXWQ8kn80ep9E-uUA-xn8WI7b5Y"
+DATA_FILE = Path("hasil_hitung_benur.csv")
 
 
 def save_to_google_sheet(row):
@@ -33,37 +36,140 @@ def save_to_google_sheet(row):
         row["tank"],
         row["umur_pl"],
         row["operator"],
-        int(row["hasil_deteksi"]),
-        int(row["hasil_koreksi"]),
+        row["hasil_deteksi"],
+        row["hasil_koreksi"],
         row["catatan"],
     ])
 
 
+# =========================
+# PAGE CONFIG
+# =========================
 st.set_page_config(
     page_title="CPP FastCount",
     page_icon="🦐",
     layout="wide"
 )
 
-st.title("🦐 CPP FastCount")
-st.write("Upload foto benur untuk menghitung estimasi jumlah benur.")
+# =========================
+# CUSTOM CSS
+# =========================
+st.markdown("""
+<style>
+    .stApp {
+        background: linear-gradient(135deg, #f7fff9 0%, #ffffff 45%, #fff8e6 100%);
+    }
 
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0b4d2b 0%, #0f6b3a 100%);
+    }
+
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] h1,
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3,
+    section[data-testid="stSidebar"] p {
+        color: white !important;
+    }
+
+    .main-header {
+        background: linear-gradient(90deg, #0b4d2b, #157347);
+        padding: 28px;
+        border-radius: 22px;
+        color: white;
+        box-shadow: 0px 8px 25px rgba(0,0,0,0.15);
+        margin-bottom: 25px;
+    }
+
+    .main-title {
+        font-size: 46px;
+        font-weight: 800;
+        margin-bottom: 5px;
+    }
+
+    .subtitle {
+        font-size: 18px;
+        color: #fff4cc;
+    }
+
+    .section-card {
+        background: white;
+        padding: 20px;
+        border-radius: 18px;
+        box-shadow: 0px 5px 18px rgba(0,0,0,0.07);
+        margin-bottom: 20px;
+    }
+
+    .success-box {
+        background: #e8f7ef;
+        border-left: 8px solid #0f8a45;
+        padding: 18px;
+        border-radius: 14px;
+        color: #0b4d2b;
+        font-weight: 700;
+        font-size: 18px;
+    }
+
+    .stButton > button {
+        background-color: #0f8a45;
+        color: white;
+        border-radius: 12px;
+        border: none;
+        padding: 12px 28px;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .stButton > button:hover {
+        background-color: #0b6d36;
+        color: white;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# =========================
+# HEADER
+# =========================
+st.markdown("""
+<div class="main-header">
+    <div class="main-title">🦐 CPP FastCount</div>
+    <div class="subtitle">
+        Aplikasi hitung benur berbasis web, cepat, praktis, dan terintegrasi Google Sheets
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<div class="section-card">
+    <b>📌 Fungsi Aplikasi:</b><br>
+    Upload foto benur → deteksi otomatis → koreksi manual → simpan hasil ke Google Sheets.
+</div>
+""", unsafe_allow_html=True)
+
+# =========================
+# SIDEBAR
+# =========================
 with st.sidebar:
-    st.header("Data Sampling")
+    st.header("📋 Data Sampling")
+
     unit = st.text_input("Unit Hatchery", "Makassar")
     batch = st.text_input("Batch")
     tank = st.text_input("Nomor Tank")
     umur_pl = st.text_input("Umur PL", "PL10")
     operator = st.text_input("Operator")
 
-    st.header("Parameter Deteksi")
+    st.header("⚙️ Parameter Deteksi")
+
     threshold = st.slider("Threshold", 0, 255, 120)
     min_area = st.slider("Min Area", 1, 500, 15)
     max_area = st.slider("Max Area", 10, 5000, 700)
     blur = st.slider("Blur", 1, 21, 5, step=2)
 
+# =========================
+# FILE UPLOAD
+# =========================
 uploaded_file = st.file_uploader(
-    "Upload Foto Benur",
+    "📤 Upload Foto Benur",
     type=["jpg", "jpeg", "png"]
 )
 
@@ -99,12 +205,18 @@ def detect_benur(image_rgb):
             count += 1
             x, y, w, h = cv2.boundingRect(contour)
 
-            cv2.rectangle(result, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.rectangle(
+                result,
+                (x, y),
+                (x + w, y + h),
+                (0, 255, 0),
+                2
+            )
 
             cv2.putText(
                 result,
                 str(count),
-                (x, max(y - 5, 10)),
+                (x, y - 5),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5,
                 (255, 0, 0),
@@ -114,26 +226,30 @@ def detect_benur(image_rgb):
     return result, thresh, count
 
 
+# =========================
+# PROCESS IMAGE
+# =========================
 if uploaded_file:
     image = Image.open(uploaded_file).convert("RGB")
     image_rgb = np.array(image)
 
     result_img, thresh_img, count = detect_benur(image_rgb)
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.subheader("Foto Asli")
-        st.image(image_rgb, use_container_width=True)
+        st.subheader("📷 Foto Asli")
+        st.image(image_rgb)
 
     with col2:
-        st.subheader("Hasil Deteksi")
-        st.image(result_img, use_container_width=True)
+        st.subheader("🎯 Hasil Deteksi")
+        st.image(result_img)
 
-    st.subheader("Mask Deteksi")
-    st.image(thresh_img, use_container_width=True)
+    with col3:
+        st.subheader("🧠 Mask Deteksi")
+        st.image(thresh_img)
 
-    st.metric("Estimasi Jumlah Benur", count)
+    st.metric("📊 Estimasi Jumlah Benur", count)
 
     koreksi = st.number_input(
         "Koreksi Manual",
@@ -143,9 +259,9 @@ if uploaded_file:
 
     catatan = st.text_area("Catatan")
 
-    if st.button("Simpan Hasil"):
+    if st.button("💾 Simpan Hasil"):
         row = {
-            "tanggal": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "tanggal": datetime.now(),
             "unit": unit,
             "batch": batch,
             "tank": tank,
@@ -164,9 +280,10 @@ if uploaded_file:
 
         df.to_csv(DATA_FILE, index=False)
 
-        try:
-            save_to_google_sheet(row)
-            st.success("Data berhasil disimpan ke Google Sheets")
-        except Exception as e:
-            st.error("Data gagal disimpan ke Google Sheets")
-            st.exception(e)
+        save_to_google_sheet(row)
+
+        st.markdown("""
+        <div class="success-box">
+        ✅ Data berhasil disimpan ke Google Sheets
+        </div>
+        """, unsafe_allow_html=True)
