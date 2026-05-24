@@ -52,7 +52,12 @@ def detect_benur(image_rgb, threshold, min_area, max_area, blur):
     gray = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2GRAY)
     gray = cv2.GaussianBlur(gray, (blur, blur), 0)
 
-    _, thresh = cv2.threshold(gray, threshold, 255, cv2.THRESH_BINARY_INV)
+    _, thresh = cv2.threshold(
+        gray,
+        threshold,
+        255,
+        cv2.THRESH_BINARY_INV
+    )
 
     kernel = np.ones((3, 3), np.uint8)
     thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
@@ -74,7 +79,14 @@ def detect_benur(image_rgb, threshold, min_area, max_area, blur):
             count += 1
             x, y, w, h = cv2.boundingRect(contour)
 
-            cv2.rectangle(result, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.rectangle(
+                result,
+                (x, y),
+                (x + w, y + h),
+                (0, 255, 0),
+                2
+            )
+
             cv2.putText(
                 result,
                 str(count),
@@ -211,7 +223,7 @@ if logo_base64:
                  ">
             <div>
                 <div class="main-title">CPP FastCount</div>
-                <div class="subtitle">Support by Team Operation V.01 (Sangga)</div>
+                <div class="subtitle">By Team Support V1.0</div>
             </div>
         </div>
     </div>
@@ -220,7 +232,7 @@ else:
     st.markdown("""
     <div class="main-header">
         <div class="main-title">🦐 CPP FastCount</div>
-        <div class="subtitle">Support by Team Operation V.01 (Sangga)</div>
+        <div class="subtitle">By Team Support V1.0</div>
     </div>
     """, unsafe_allow_html=True)
 
