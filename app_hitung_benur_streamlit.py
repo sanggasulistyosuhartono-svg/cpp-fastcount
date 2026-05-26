@@ -1,5 +1,4 @@
 import cv2
-import base64
 import numpy as np
 import pandas as pd
 from PIL import Image
@@ -13,13 +12,6 @@ SPREADSHEET_ID = "13XAwI8y9F6yox2yFdXWQ8kn80ep9E-uUA-xn8WI7b5Y"
 DATA_FILE = Path("hasil_hitung_aquacount.csv")
 AQUACOUNT_LOGO = Path("logo_aquacount.png")
 CP_LOGO = Path("logo_cp.png")
-
-
-def image_to_base64(path):
-    if path.exists():
-        with open(path, "rb") as f:
-            return base64.b64encode(f.read()).decode()
-    return ""
 
 
 def save_to_google_sheet(row):
@@ -121,56 +113,34 @@ st.markdown("""
         color: white !important;
     }
 
-    .header-box {
+    .header-card {
         background: linear-gradient(90deg, #0646b8, #078ed1, #10bfae);
-        padding: 22px 30px;
+        padding: 20px;
         border-radius: 22px;
         box-shadow: 0px 8px 24px rgba(0,0,0,0.15);
-        margin-bottom: 16px;
+        margin-bottom: 18px;
         border-bottom: 5px solid #11d3c5;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 24px;
     }
 
-    .logo-panel {
+    .logo-card {
         background: white;
-        padding: 16px 24px;
-        border-radius: 22px;
-        box-shadow: 0px 8px 22px rgba(0,0,0,0.18);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 26px;
-        min-width: 560px;
+        padding: 18px;
+        border-radius: 20px;
+        box-shadow: 0px 6px 18px rgba(0,0,0,0.15);
     }
 
-    .aqua-logo {
-        width: 360px;
-        height: auto;
-        object-fit: contain;
-    }
-
-    .cp-logo {
-        width: 120px;
-        height: auto;
-        object-fit: contain;
-    }
-
-    .brand-title {
-        font-size: 50px;
-        font-weight: 900;
+    .title-white {
         color: white;
+        font-size: 48px;
+        font-weight: 900;
         margin-bottom: 8px;
-        line-height: 1;
     }
 
-    .brand-subtitle {
-        font-size: 18px;
+    .subtitle-white {
         color: #eafffb;
+        font-size: 18px;
         font-weight: 800;
-        letter-spacing: 1.6px;
+        letter-spacing: 1.5px;
     }
 
     .mini-card {
@@ -218,43 +188,48 @@ st.markdown("""
         background-color: #078ed1;
         color: white;
     }
-
-    img {
-        border-radius: 10px;
-    }
 </style>
 """, unsafe_allow_html=True)
 
 
-aqua_logo_b64 = image_to_base64(AQUACOUNT_LOGO)
-cp_logo_b64 = image_to_base64(CP_LOGO)
+# ============================================================
+# HEADER AMAN
+# ============================================================
 
-aqua_logo_html = (
-    f'<img class="aqua-logo" src="data:image/png;base64,{aqua_logo_b64}">'
-    if aqua_logo_b64 else
-    '<div style="font-size:32px;font-weight:800;color:#0646b8;">AquaCount</div>'
-)
+st.markdown('<div class="header-card">', unsafe_allow_html=True)
 
-cp_logo_html = (
-    f'<img class="cp-logo" src="data:image/png;base64,{cp_logo_b64}">'
-    if cp_logo_b64 else
-    ''
-)
+col_logo, col_title = st.columns([1.6, 2.4])
 
-st.markdown(f"""
-<div class="header-box">
-    <div class="logo-panel">
-        {aqua_logo_html}
-        {cp_logo_html}
-    </div>
+with col_logo:
+    st.markdown('<div class="logo-card">', unsafe_allow_html=True)
 
-    <div>
-        <div class="brand-title">AquaCount</div>
-        <div class="brand-subtitle">ACCURATE • FAST • RELIABLE • CONTINUOUS</div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+    logo1, logo2 = st.columns([2.5, 1])
 
+    with logo1:
+        if AQUACOUNT_LOGO.exists():
+            st.image(str(AQUACOUNT_LOGO), width=340)
+        else:
+            st.markdown("### AquaCount")
+
+    with logo2:
+        if CP_LOGO.exists():
+            st.image(str(CP_LOGO), width=115)
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with col_title:
+    st.markdown('<div class="title-white">AquaCount</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="subtitle-white">ACCURATE • FAST • RELIABLE • CONTINUOUS</div>',
+        unsafe_allow_html=True
+    )
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+
+# ============================================================
+# SIDEBAR
+# ============================================================
 
 with st.sidebar:
     st.header("📋 Data Sampling")
