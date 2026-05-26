@@ -10,8 +10,8 @@ import gspread
 from google.oauth2.service_account import Credentials
 
 SPREADSHEET_ID = "13XAwI8y9F6yox2yFdXWQ8kn80ep9E-uUA-xn8WI7b5Y"
-DATA_FILE = Path("hasil_hitung_benur.csv")
-LOGO_FILE = Path("logo_cp.png")
+DATA_FILE = Path("hasil_hitung_aquacount.csv")
+LOGO_FILE = Path("logo_aquacount.png")
 
 
 def image_to_base64(image_path):
@@ -38,7 +38,6 @@ def save_to_google_sheet(row):
     sheet.append_row([
         row["tanggal"],
         row["unit"],
-        row["batch"],
         row["tank"],
         row["umur_pl"],
         row["operator"],
@@ -79,13 +78,7 @@ def detect_benur(image_rgb, threshold, min_area, max_area, blur):
             count += 1
             x, y, w, h = cv2.boundingRect(contour)
 
-            cv2.rectangle(
-                result,
-                (x, y),
-                (x + w, y + h),
-                (0, 255, 0),
-                2
-            )
+            cv2.rectangle(result, (x, y), (x + w, y + h), (0, 180, 120), 2)
 
             cv2.putText(
                 result,
@@ -93,7 +86,7 @@ def detect_benur(image_rgb, threshold, min_area, max_area, blur):
                 (x, max(y - 5, 10)),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.45,
-                (255, 0, 0),
+                (0, 90, 255),
                 1
             )
 
@@ -101,8 +94,8 @@ def detect_benur(image_rgb, threshold, min_area, max_area, blur):
 
 
 st.set_page_config(
-    page_title="CPP FastCount",
-    page_icon="🦐",
+    page_title="AquaCount",
+    page_icon="💧",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -116,11 +109,11 @@ st.markdown("""
     }
 
     .stApp {
-        background: linear-gradient(135deg, #f7fff9 0%, #ffffff 45%, #fff8e6 100%);
+        background: linear-gradient(135deg, #f5fbff 0%, #ffffff 45%, #eafffb 100%);
     }
 
     section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #063b22 0%, #0b5d34 55%, #0f7a43 100%);
+        background: linear-gradient(180deg, #0646b8 0%, #078ed1 55%, #10bfae 100%);
         width: 300px !important;
     }
 
@@ -133,17 +126,17 @@ st.markdown("""
     }
 
     .main-header {
-        background: linear-gradient(90deg, #063b22, #0b5d34, #157347);
+        background: linear-gradient(90deg, #0646b8, #078ed1, #10bfae);
         padding: 16px 22px;
         border-radius: 18px;
         color: white;
         box-shadow: 0px 8px 20px rgba(0,0,0,0.14);
         margin-bottom: 12px;
-        border-bottom: 5px solid #d4af37;
+        border-bottom: 5px solid #11d3c5;
     }
 
     .main-title {
-        font-size: 38px;
+        font-size: 40px;
         font-weight: 900;
         color: white;
         margin-bottom: 2px;
@@ -151,8 +144,9 @@ st.markdown("""
 
     .subtitle {
         font-size: 15px;
-        color: #fff4cc;
+        color: #eafffb;
         font-weight: 600;
+        letter-spacing: 1px;
     }
 
     .mini-card {
@@ -164,11 +158,11 @@ st.markdown("""
     }
 
     .result-box {
-        background: #fff8e6;
-        border-left: 7px solid #d4af37;
+        background: #eafffb;
+        border-left: 7px solid #11d3c5;
         padding: 14px;
         border-radius: 14px;
-        color: #0b4d2b;
+        color: #0646b8;
         font-weight: 800;
         font-size: 28px;
         text-align: center;
@@ -176,17 +170,17 @@ st.markdown("""
     }
 
     .success-box {
-        background: #e8f7ef;
-        border-left: 7px solid #0f8a45;
+        background: #e6fff9;
+        border-left: 7px solid #10bfae;
         padding: 12px;
         border-radius: 12px;
-        color: #0b4d2b;
+        color: #0646b8;
         font-weight: 700;
         font-size: 15px;
     }
 
     .stButton > button {
-        background-color: #0f8a45;
+        background-color: #10bfae;
         color: white;
         border-radius: 10px;
         border: none;
@@ -197,7 +191,7 @@ st.markdown("""
     }
 
     .stButton > button:hover {
-        background-color: #0b6d36;
+        background-color: #078ed1;
         color: white;
     }
 
@@ -207,6 +201,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+
 logo_base64 = image_to_base64(LOGO_FILE)
 
 if logo_base64:
@@ -215,31 +210,39 @@ if logo_base64:
         <div style="display:flex; align-items:center; gap:20px;">
             <img src="data:image/png;base64,{logo_base64}" 
                  style="
-                    width:90px;
+                    width:180px;
                     background:white;
                     padding:8px;
                     border-radius:18px;
                     box-shadow:0 8px 18px rgba(0,0,0,0.18);
                  ">
             <div>
-                <div class="main-title">CPP FastCount</div>
-                <div class="subtitle">By Team Support V1.0</div>
+                <div class="main-title">AquaCount</div>
+                <div class="subtitle">ACCURATE • FAST • RELIABLE • CONTINUOUS</div>
+                <div style="font-size:14px; color:#eafffb; font-weight:600;">
+                    By Team Support V1.0
+                </div>
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
+
 else:
     st.markdown("""
     <div class="main-header">
-        <div class="main-title">🦐 CPP FastCount</div>
-        <div class="subtitle">By Team Support V1.0</div>
+        <div class="main-title">💧 AquaCount</div>
+        <div class="subtitle">ACCURATE • FAST • RELIABLE • CONTINUOUS</div>
+        <div style="font-size:14px; color:#eafffb; font-weight:600;">
+            By Team Support V1.0
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
+
 with st.sidebar:
     st.header("📋 Data Sampling")
+
     unit = st.text_input("Unit Hatchery", "Makassar")
-    batch = st.text_input("Batch")
     tank = st.text_input("Nomor Tank")
     umur_pl = st.text_input("Umur PL", "PL10")
     operator = st.text_input("Operator")
@@ -250,10 +253,12 @@ with st.sidebar:
     max_area = st.slider("Max Area", 10, 5000, 700)
     blur = st.slider("Blur", 1, 21, 5, step=2)
 
+
 uploaded_file = st.file_uploader(
     "📤 Upload Foto Benur",
     type=["jpg", "jpeg", "png"]
 )
+
 
 if uploaded_file:
     image = Image.open(uploaded_file).convert("RGB")
@@ -292,7 +297,7 @@ if uploaded_file:
 
         st.markdown(f"""
         <div class="result-box">
-            Estimasi<br>{count}
+            Jumlah<br>{count}
         </div>
         """, unsafe_allow_html=True)
 
@@ -308,7 +313,6 @@ if uploaded_file:
             row = {
                 "tanggal": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "unit": unit,
-                "batch": batch,
                 "tank": tank,
                 "umur_pl": umur_pl,
                 "operator": operator,
@@ -337,7 +341,7 @@ if uploaded_file:
 else:
     st.markdown("""
     <div class="mini-card">
-        <b>📌 Cara Pakai:</b><br>
+        <b>📌 Cara Pakai AquaCount:</b><br>
         1. Isi data sampling di sidebar.<br>
         2. Upload foto benur.<br>
         3. Cek hasil deteksi.<br>
