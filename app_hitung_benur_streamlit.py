@@ -15,13 +15,6 @@ AQUACOUNT_LOGO = Path("logo_aquacount.png")
 CP_LOGO = Path("logo_cp.png")
 
 
-def image_to_base64(image_path):
-    if image_path.exists():
-        with open(image_path, "rb") as img_file:
-            return base64.b64encode(img_file.read()).decode()
-    return ""
-
-
 def save_to_google_sheet(row):
     scopes = [
         "https://www.googleapis.com/auth/spreadsheets",
@@ -52,12 +45,7 @@ def detect_benur(image_rgb, threshold, min_area, max_area, blur):
     gray = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2GRAY)
     gray = cv2.GaussianBlur(gray, (blur, blur), 0)
 
-    _, thresh = cv2.threshold(
-        gray,
-        threshold,
-        255,
-        cv2.THRESH_BINARY_INV
-    )
+    _, thresh = cv2.threshold(gray, threshold, 255, cv2.THRESH_BINARY_INV)
 
     kernel = np.ones((3, 3), np.uint8)
     thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
@@ -80,7 +68,6 @@ def detect_benur(image_rgb, threshold, min_area, max_area, blur):
             x, y, w, h = cv2.boundingRect(contour)
 
             cv2.rectangle(result, (x, y), (x + w, y + h), (0, 180, 120), 2)
-
             cv2.putText(
                 result,
                 str(count),
@@ -126,11 +113,10 @@ st.markdown("""
         color: white !important;
     }
 
-    .main-header {
+    .header-box {
         background: linear-gradient(90deg, #0646b8, #078ed1, #10bfae);
         padding: 18px 26px;
         border-radius: 20px;
-        color: white;
         box-shadow: 0px 8px 22px rgba(0,0,0,0.15);
         margin-bottom: 12px;
         border-bottom: 5px solid #11d3c5;
@@ -203,66 +189,32 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-aquacount_logo_base64 = image_to_base64(AQUACOUNT_LOGO)
-cp_logo_base64 = image_to_base64(CP_LOGO)
+# =========================
+# HEADER AMAN TANPA RAW HTML
+# =========================
 
-if aquacount_logo_base64:
-    cp_logo_html = ""
-    if cp_logo_base64:
-        cp_logo_html = f"""
-        <img src="data:image/png;base64,{cp_logo_base64}" 
-             style="
-                width:95px;
-                height:auto;
-                background:white;
-                padding:8px;
-                border-radius:16px;
-                box-shadow:0 8px 18px rgba(0,0,0,0.18);
-             ">
-        """
+st.markdown('<div class="header-box">', unsafe_allow_html=True)
 
-    st.markdown(f"""
-    <div class="main-header">
-        <div style="
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-            gap:24px;
-            width:100%;
-        ">
+h1, h2, h3 = st.columns([2.2, 3.5, 1.2])
 
-            <div style="display:flex; align-items:center; gap:26px;">
-                <img src="data:image/png;base64,{aquacount_logo_base64}" 
-                     style="
-                        width:260px;
-                        height:auto;
-                        background:white;
-                        padding:10px;
-                        border-radius:20px;
-                        box-shadow:0 8px 18px rgba(0,0,0,0.18);
-                     ">
+with h1:
+    if AQUACOUNT_LOGO.exists():
+        st.image(str(AQUACOUNT_LOGO), width=260)
+    else:
+        st.markdown("## 💧 AquaCount")
 
-                <div>
-                    <div class="main-title">AquaCount</div>
-                    <div class="subtitle">ACCURATE • FAST • RELIABLE • CONTINUOUS</div>
-                </div>
-            </div>
+with h2:
+    st.markdown('<div class="main-title">AquaCount</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="subtitle">ACCURATE • FAST • RELIABLE • CONTINUOUS</div>',
+        unsafe_allow_html=True
+    )
 
-            <div>
-                {cp_logo_html}
-            </div>
+with h3:
+    if CP_LOGO.exists():
+        st.image(str(CP_LOGO), width=95)
 
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-else:
-    st.markdown("""
-    <div class="main-header">
-        <div class="main-title">💧 AquaCount</div>
-        <div class="subtitle">ACCURATE • FAST • RELIABLE • CONTINUOUS</div>
-    </div>
-    """, unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
 
 
 with st.sidebar:
