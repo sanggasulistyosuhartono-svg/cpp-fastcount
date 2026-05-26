@@ -52,9 +52,7 @@ def detect_benur(image_rgb, threshold, min_area, max_area, blur):
     thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
 
     contours, _ = cv2.findContours(
-        thresh,
-        cv2.RETR_EXTERNAL,
-        cv2.CHAIN_APPROX_SIMPLE
+        thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
     )
 
     result = image_rgb.copy()
@@ -66,9 +64,7 @@ def detect_benur(image_rgb, threshold, min_area, max_area, blur):
         if min_area <= area <= max_area:
             count += 1
             x, y, w, h = cv2.boundingRect(contour)
-
             cv2.rectangle(result, (x, y), (x + w, y + h), (0, 180, 120), 2)
-
             cv2.putText(
                 result,
                 str(count),
@@ -76,7 +72,7 @@ def detect_benur(image_rgb, threshold, min_area, max_area, blur):
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.45,
                 (0, 90, 255),
-                1
+                1,
             )
 
     return result, thresh, count
@@ -86,14 +82,13 @@ st.set_page_config(
     page_title="AquaCount",
     page_icon="💧",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 st.markdown("""
 <style>
     .block-container {
         padding-top: 1rem;
-        padding-bottom: 0rem;
         max-width: 100%;
     }
 
@@ -113,19 +108,18 @@ st.markdown("""
         color: white !important;
     }
 
-    .main-title {
-        font-size: 44px;
+    .title-main {
+        font-size: 46px;
         font-weight: 900;
         color: #0646b8;
         margin-bottom: 0px;
     }
 
-    .main-subtitle {
+    .subtitle-main {
         font-size: 17px;
         color: #078ed1;
         font-weight: 800;
         letter-spacing: 1.4px;
-        margin-bottom: 10px;
     }
 
     .mini-card {
@@ -177,24 +171,24 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# HEADER AMAN
-header_col1, header_col2, header_col3 = st.columns([2.3, 1.1, 3])
+# HEADER LOGO RAPI & TAJAM
+logo_col1, logo_col2, title_col = st.columns([2.8, 0.9, 3.2])
 
-with header_col1:
+with logo_col1:
     if AQUACOUNT_LOGO.exists():
-        st.image(str(AQUACOUNT_LOGO), width=360)
+        st.image(str(AQUACOUNT_LOGO), width=420)
     else:
         st.markdown("## AquaCount")
 
-with header_col2:
+with logo_col2:
     if CP_LOGO.exists():
-        st.image(str(CP_LOGO), width=130)
+        st.image(str(CP_LOGO), width=95)
 
-with header_col3:
-    st.markdown('<div class="main-title">AquaCount</div>', unsafe_allow_html=True)
+with title_col:
+    st.markdown('<div class="title-main">AquaCount</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="main-subtitle">ACCURATE • FAST • RELIABLE • CONTINUOUS</div>',
-        unsafe_allow_html=True
+        '<div class="subtitle-main">ACCURATE • FAST • RELIABLE • CONTINUOUS</div>',
+        unsafe_allow_html=True,
     )
 
 st.divider()
@@ -217,7 +211,7 @@ with st.sidebar:
 
 uploaded_file = st.file_uploader(
     "📤 Upload Foto Benur",
-    type=["jpg", "jpeg", "png"]
+    type=["jpg", "jpeg", "png"],
 )
 
 
@@ -226,11 +220,7 @@ if uploaded_file:
     image_rgb = np.array(image)
 
     result_img, thresh_img, count = detect_benur(
-        image_rgb,
-        threshold,
-        min_area,
-        max_area,
-        blur
+        image_rgb, threshold, min_area, max_area, blur
     )
 
     col1, col2, col3, col4 = st.columns([1.2, 1.2, 1.2, 0.9])
@@ -239,19 +229,19 @@ if uploaded_file:
         st.markdown('<div class="mini-card">', unsafe_allow_html=True)
         st.subheader("📷 Foto Asli")
         st.image(image_rgb, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
     with col2:
         st.markdown('<div class="mini-card">', unsafe_allow_html=True)
         st.subheader("🎯 Hasil Deteksi")
         st.image(result_img, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
     with col3:
         st.markdown('<div class="mini-card">', unsafe_allow_html=True)
         st.subheader("🧠 Mask")
         st.image(thresh_img, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
     with col4:
         st.markdown('<div class="mini-card">', unsafe_allow_html=True)
@@ -265,7 +255,7 @@ if uploaded_file:
         koreksi = st.number_input(
             "Koreksi Manual",
             min_value=0,
-            value=int(count)
+            value=int(count),
         )
 
         catatan = st.text_area("Catatan", height=90)
@@ -279,7 +269,7 @@ if uploaded_file:
                 "operator": operator,
                 "hasil_deteksi": int(count),
                 "hasil_koreksi": int(koreksi),
-                "catatan": catatan
+                "catatan": catatan,
             }
 
             if DATA_FILE.exists():
@@ -297,7 +287,7 @@ if uploaded_file:
             </div>
             """, unsafe_allow_html=True)
 
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
 else:
     st.markdown("""
