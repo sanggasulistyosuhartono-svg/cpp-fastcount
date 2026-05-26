@@ -1,4 +1,5 @@
 import cv2
+import base64
 import numpy as np
 import pandas as pd
 from PIL import Image
@@ -8,20 +9,18 @@ from datetime import datetime
 import gspread
 from google.oauth2.service_account import Credentials
 
-# ============================================================
-# CONFIGURATION
-# ============================================================
-
 SPREADSHEET_ID = "13XAwI8y9F6yox2yFdXWQ8kn80ep9E-uUA-xn8WI7b5Y"
-
 DATA_FILE = Path("hasil_hitung_aquacount.csv")
 AQUACOUNT_LOGO = Path("logo_aquacount.png")
 CP_LOGO = Path("logo_cp.png")
 
 
-# ============================================================
-# GOOGLE SHEETS
-# ============================================================
+def image_to_base64(path):
+    if path.exists():
+        with open(path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    return ""
+
 
 def save_to_google_sheet(row):
     scopes = [
@@ -49,20 +48,11 @@ def save_to_google_sheet(row):
     ])
 
 
-# ============================================================
-# DETECTION ENGINE
-# ============================================================
-
 def detect_benur(image_rgb, threshold, min_area, max_area, blur):
     gray = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2GRAY)
     gray = cv2.GaussianBlur(gray, (blur, blur), 0)
 
-    _, thresh = cv2.threshold(
-        gray,
-        threshold,
-        255,
-        cv2.THRESH_BINARY_INV
-    )
+    _, thresh = cv2.threshold(gray, threshold, 255, cv2.THRESH_BINARY_INV)
 
     kernel = np.ones((3, 3), np.uint8)
     thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
@@ -84,13 +74,7 @@ def detect_benur(image_rgb, threshold, min_area, max_area, blur):
             count += 1
             x, y, w, h = cv2.boundingRect(contour)
 
-            cv2.rectangle(
-                result,
-                (x, y),
-                (x + w, y + h),
-                (0, 180, 120),
-                2
-            )
+            cv2.rectangle(result, (x, y), (x + w, y + h), (0, 180, 120), 2)
 
             cv2.putText(
                 result,
@@ -105,21 +89,12 @@ def detect_benur(image_rgb, threshold, min_area, max_area, blur):
     return result, thresh, count
 
 
-# ============================================================
-# PAGE CONFIG
-# ============================================================
-
 st.set_page_config(
     page_title="AquaCount",
     page_icon="💧",
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-
-# ============================================================
-# CUSTOM CSS
-# ============================================================
 
 st.markdown("""
 <style>
@@ -148,30 +123,46 @@ st.markdown("""
 
     .header-box {
         background: linear-gradient(90deg, #0646b8, #078ed1, #10bfae);
-        padding: 18px 28px;
+        padding: 22px 30px;
         border-radius: 22px;
         box-shadow: 0px 8px 24px rgba(0,0,0,0.15);
-        margin-bottom: 14px;
+        margin-bottom: 16px;
         border-bottom: 5px solid #11d3c5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
     }
 
     .logo-panel {
         background: white;
-        padding: 14px 22px;
+        padding: 16px 24px;
         border-radius: 22px;
         box-shadow: 0px 8px 22px rgba(0,0,0,0.18);
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 24px;
-        min-height: 120px;
+        gap: 26px;
+        min-width: 560px;
+    }
+
+    .aqua-logo {
+        width: 360px;
+        height: auto;
+        object-fit: contain;
+    }
+
+    .cp-logo {
+        width: 120px;
+        height: auto;
+        object-fit: contain;
     }
 
     .brand-title {
-        font-size: 48px;
+        font-size: 50px;
         font-weight: 900;
         color: white;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
         line-height: 1;
     }
 
@@ -235,49 +226,35 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# ============================================================
-# HEADER LOGO AQUACOUNT + CP PRIMA
-# ============================================================
+aqua_logo_b64 = image_to_base64(AQUACOUNT_LOGO)
+cp_logo_b64 = image_to_base64(CP_LOGO)
 
-st.markdown('<div class="header-box">', unsafe_allow_html=True)
+aqua_logo_html = (
+    f'<img class="aqua-logo" src="data:image/png;base64,{aqua_logo_b64}">'
+    if aqua_logo_b64 else
+    '<div style="font-size:32px;font-weight:800;color:#0646b8;">AquaCount</div>'
+)
 
-left_col, right_col = st.columns([3.1, 3.0])
+cp_logo_html = (
+    f'<img class="cp-logo" src="data:image/png;base64,{cp_logo_b64}">'
+    if cp_logo_b64 else
+    ''
+)
 
-with left_col:
-    st.markdown('<div class="logo-panel">', unsafe_allow_html=True)
-
-    logo_col1, logo_col2 = st.columns([2.6, 1.0])
-
-    with logo_col1:
-        if AQUACOUNT_LOGO.exists():
-            st.image(str(AQUACOUNT_LOGO), width=330)
-        else:
-            st.markdown("### AquaCount")
-
-    with logo_col2:
-        if CP_LOGO.exists():
-            st.image(str(CP_LOGO), width=120)
-        else:
-            st.markdown("### CP")
-
-    st.markdown('</div>', unsafe_allow_html=True)
-
-with right_col:
-    st.markdown("""
-    <div style="padding-top:25px;">
-        <div class="brand-title">AquaCount</div>
-        <div class="brand-subtitle">
-            ACCURATE • FAST • RELIABLE • CONTINUOUS
-        </div>
+st.markdown(f"""
+<div class="header-box">
+    <div class="logo-panel">
+        {aqua_logo_html}
+        {cp_logo_html}
     </div>
-    """, unsafe_allow_html=True)
 
-st.markdown('</div>', unsafe_allow_html=True)
+    <div>
+        <div class="brand-title">AquaCount</div>
+        <div class="brand-subtitle">ACCURATE • FAST • RELIABLE • CONTINUOUS</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
-
-# ============================================================
-# SIDEBAR INPUT
-# ============================================================
 
 with st.sidebar:
     st.header("📋 Data Sampling")
@@ -288,26 +265,17 @@ with st.sidebar:
     operator = st.text_input("Operator")
 
     st.header("⚙️ Parameter")
-
     threshold = st.slider("Threshold", 0, 255, 120)
     min_area = st.slider("Min Area", 1, 500, 15)
     max_area = st.slider("Max Area", 10, 5000, 700)
     blur = st.slider("Blur", 1, 21, 5, step=2)
 
 
-# ============================================================
-# FILE UPLOAD
-# ============================================================
-
 uploaded_file = st.file_uploader(
     "📤 Upload Foto Benur",
     type=["jpg", "jpeg", "png"]
 )
 
-
-# ============================================================
-# MAIN PROCESS
-# ============================================================
 
 if uploaded_file:
     image = Image.open(uploaded_file).convert("RGB")
