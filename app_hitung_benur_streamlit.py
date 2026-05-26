@@ -1,5 +1,4 @@
 import cv2
-import base64
 import numpy as np
 import pandas as pd
 from PIL import Image
@@ -14,13 +13,6 @@ SPREADSHEET_ID = "13XAwI8y9F6yox2yFdXWQ8kn80ep9E-uUA-xn8WI7b5Y"
 DATA_FILE = Path("hasil_hitung_aquacount.csv")
 AQUACOUNT_LOGO = Path("logo_aquacount.png")
 CP_LOGO = Path("logo_cp.png")
-
-
-def image_to_base64(path):
-    if path.exists():
-        with open(path, "rb") as file:
-            return base64.b64encode(file.read()).decode("utf-8")
-    return ""
 
 
 def save_to_google_sheet(row):
@@ -53,12 +45,7 @@ def detect_benur(image_rgb, threshold, min_area, max_area, blur):
     gray = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2GRAY)
     gray = cv2.GaussianBlur(gray, (blur, blur), 0)
 
-    _, thresh = cv2.threshold(
-        gray,
-        threshold,
-        255,
-        cv2.THRESH_BINARY_INV
-    )
+    _, thresh = cv2.threshold(gray, threshold, 255, cv2.THRESH_BINARY_INV)
 
     kernel = np.ones((3, 3), np.uint8)
     thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
@@ -80,13 +67,7 @@ def detect_benur(image_rgb, threshold, min_area, max_area, blur):
             count += 1
             x, y, w, h = cv2.boundingRect(contour)
 
-            cv2.rectangle(
-                result,
-                (x, y),
-                (x + w, y + h),
-                (0, 180, 120),
-                2
-            )
+            cv2.rectangle(result, (x, y), (x + w, y + h), (0, 180, 120), 2)
 
             cv2.putText(
                 result,
@@ -111,7 +92,7 @@ st.set_page_config(
 st.markdown("""
 <style>
     .block-container {
-        padding-top: 0.8rem;
+        padding-top: 1rem;
         padding-bottom: 0rem;
         max-width: 100%;
     }
@@ -122,7 +103,6 @@ st.markdown("""
 
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #0646b8 0%, #078ed1 55%, #10bfae 100%);
-        width: 300px !important;
     }
 
     section[data-testid="stSidebar"] label,
@@ -133,54 +113,19 @@ st.markdown("""
         color: white !important;
     }
 
-    .header-card {
-        background: linear-gradient(90deg, #0646b8, #078ed1, #10bfae);
-        padding: 24px;
-        border-radius: 24px;
-        box-shadow: 0px 8px 24px rgba(0,0,0,0.15);
-        margin-bottom: 18px;
-        border-bottom: 5px solid #11d3c5;
-    }
-
-    .logo-area {
-        background: white;
-        padding: 18px 24px;
-        border-radius: 22px;
-        box-shadow: 0px 8px 22px rgba(0,0,0,0.18);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 34px;
-        width: 100%;
-        min-height: 150px;
-    }
-
-    .aqua-logo {
-        width: 360px;
-        height: auto;
-        object-fit: contain;
-    }
-
-    .cp-logo {
-        width: 125px;
-        height: auto;
-        object-fit: contain;
-    }
-
-    .brand-title {
-        color: white;
-        font-size: 54px;
+    .main-title {
+        font-size: 44px;
         font-weight: 900;
-        line-height: 1;
-        margin-bottom: 12px;
+        color: #0646b8;
+        margin-bottom: 0px;
     }
 
-    .brand-subtitle {
-        color: #eafffb;
-        font-size: 18px;
+    .main-subtitle {
+        font-size: 17px;
+        color: #078ed1;
         font-weight: 800;
-        letter-spacing: 1.7px;
-        line-height: 1.5;
+        letter-spacing: 1.4px;
+        margin-bottom: 10px;
     }
 
     .mini-card {
@@ -228,50 +173,31 @@ st.markdown("""
         background-color: #078ed1;
         color: white;
     }
-
-    img {
-        border-radius: 10px;
-    }
 </style>
 """, unsafe_allow_html=True)
 
 
-aqua_logo = image_to_base64(AQUACOUNT_LOGO)
-cp_logo = image_to_base64(CP_LOGO)
+# HEADER AMAN
+header_col1, header_col2, header_col3 = st.columns([2.3, 1.1, 3])
 
-aqua_html = (
-    f'<img class="aqua-logo" src="data:image/png;base64,{aqua_logo}">'
-    if aqua_logo
-    else '<div style="color:#0646b8;font-size:34px;font-weight:900;">AquaCount</div>'
-)
+with header_col1:
+    if AQUACOUNT_LOGO.exists():
+        st.image(str(AQUACOUNT_LOGO), width=360)
+    else:
+        st.markdown("## AquaCount")
 
-cp_html = (
-    f'<img class="cp-logo" src="data:image/png;base64,{cp_logo}">'
-    if cp_logo
-    else ""
-)
+with header_col2:
+    if CP_LOGO.exists():
+        st.image(str(CP_LOGO), width=130)
 
-header_html = f"""
-<div class="header-card">
-    <div style="display:flex; align-items:center; gap:28px; width:100%;">
-        <div style="flex:1.4;">
-            <div class="logo-area">
-                {aqua_html}
-                {cp_html}
-            </div>
-        </div>
+with header_col3:
+    st.markdown('<div class="main-title">AquaCount</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="main-subtitle">ACCURATE • FAST • RELIABLE • CONTINUOUS</div>',
+        unsafe_allow_html=True
+    )
 
-        <div style="flex:1;">
-            <div class="brand-title">AquaCount</div>
-            <div class="brand-subtitle">
-                ACCURATE • FAST • RELIABLE • CONTINUOUS
-            </div>
-        </div>
-    </div>
-</div>
-"""
-
-st.markdown(header_html, unsafe_allow_html=True)
+st.divider()
 
 
 with st.sidebar:
@@ -283,7 +209,6 @@ with st.sidebar:
     operator = st.text_input("Operator")
 
     st.header("⚙️ Parameter")
-
     threshold = st.slider("Threshold", 0, 255, 120)
     min_area = st.slider("Min Area", 1, 500, 15)
     max_area = st.slider("Max Area", 10, 5000, 700)
