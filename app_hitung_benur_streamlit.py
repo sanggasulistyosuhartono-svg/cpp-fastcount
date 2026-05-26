@@ -11,7 +11,8 @@ from google.oauth2.service_account import Credentials
 
 SPREADSHEET_ID = "13XAwI8y9F6yox2yFdXWQ8kn80ep9E-uUA-xn8WI7b5Y"
 DATA_FILE = Path("hasil_hitung_aquacount.csv")
-LOGO_FILE = Path("logo_aquacount.png")
+AQUACOUNT_LOGO = Path("logo_aquacount.png")
+CP_LOGO = Path("logo_cp.png")
 
 
 def image_to_base64(image_path):
@@ -127,26 +128,26 @@ st.markdown("""
 
     .main-header {
         background: linear-gradient(90deg, #0646b8, #078ed1, #10bfae);
-        padding: 16px 22px;
-        border-radius: 18px;
+        padding: 18px 26px;
+        border-radius: 20px;
         color: white;
-        box-shadow: 0px 8px 20px rgba(0,0,0,0.14);
+        box-shadow: 0px 8px 22px rgba(0,0,0,0.15);
         margin-bottom: 12px;
         border-bottom: 5px solid #11d3c5;
     }
 
     .main-title {
-        font-size: 40px;
+        font-size: 44px;
         font-weight: 900;
         color: white;
         margin-bottom: 2px;
     }
 
     .subtitle {
-        font-size: 15px;
+        font-size: 17px;
         color: #eafffb;
-        font-weight: 600;
-        letter-spacing: 1px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
     }
 
     .mini-card {
@@ -202,27 +203,55 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-logo_base64 = image_to_base64(LOGO_FILE)
+aquacount_logo_base64 = image_to_base64(AQUACOUNT_LOGO)
+cp_logo_base64 = image_to_base64(CP_LOGO)
 
-if logo_base64:
+if aquacount_logo_base64:
+    cp_logo_html = ""
+    if cp_logo_base64:
+        cp_logo_html = f"""
+        <img src="data:image/png;base64,{cp_logo_base64}" 
+             style="
+                width:95px;
+                height:auto;
+                background:white;
+                padding:8px;
+                border-radius:16px;
+                box-shadow:0 8px 18px rgba(0,0,0,0.18);
+             ">
+        """
+
     st.markdown(f"""
     <div class="main-header">
-        <div style="display:flex; align-items:center; gap:20px;">
-            <img src="data:image/png;base64,{logo_base64}" 
-                 style="
-                    width:180px;
-                    background:white;
-                    padding:8px;
-                    border-radius:18px;
-                    box-shadow:0 8px 18px rgba(0,0,0,0.18);
-                 ">
-            <div>
-                <div class="main-title">AquaCount</div>
-                <div class="subtitle">ACCURATE • FAST • RELIABLE • CONTINUOUS</div>
-                <div style="font-size:14px; color:#eafffb; font-weight:600;">
-                    By Team Support V1.0
+        <div style="
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:24px;
+            width:100%;
+        ">
+
+            <div style="display:flex; align-items:center; gap:26px;">
+                <img src="data:image/png;base64,{aquacount_logo_base64}" 
+                     style="
+                        width:260px;
+                        height:auto;
+                        background:white;
+                        padding:10px;
+                        border-radius:20px;
+                        box-shadow:0 8px 18px rgba(0,0,0,0.18);
+                     ">
+
+                <div>
+                    <div class="main-title">AquaCount</div>
+                    <div class="subtitle">ACCURATE • FAST • RELIABLE • CONTINUOUS</div>
                 </div>
             </div>
+
+            <div>
+                {cp_logo_html}
+            </div>
+
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -232,9 +261,6 @@ else:
     <div class="main-header">
         <div class="main-title">💧 AquaCount</div>
         <div class="subtitle">ACCURATE • FAST • RELIABLE • CONTINUOUS</div>
-        <div style="font-size:14px; color:#eafffb; font-weight:600;">
-            By Team Support V1.0
-        </div>
     </div>
     """, unsafe_allow_html=True)
 
