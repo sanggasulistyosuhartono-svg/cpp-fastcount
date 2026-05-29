@@ -1,7 +1,7 @@
 streamlit
 opencv-python-headless
-pillow
-pandas
 numpy
+pandas
+Pillow
 gspread
 google-auth
